@@ -1,5 +1,6 @@
 /* Hurd unionfs
-   Copyright (C) 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2005, 2009 Free Software Foundation, Inc.
+
    Written by Moritz Schulte <moritz@duesseldorf.ccc.de>.
 
    This program is free software; you can redistribute it and/or
@@ -282,7 +283,45 @@ error_t
 netfs_attempt_sync (struct iouser *cred, struct node *np,
 		    int wait)
 {
-  return EOPNOTSUPP;
+  /* The error we are going to report back (last failure wins).  */
+  error_t final_err = 0;
+
+  /* The information about the currently analyzed filesystem.  */
+  ulfs_t * ulfs;
+
+  /* The index of the currently analyzed filesystem.  */
+  int i;
+
+  mutex_lock (&ulfs_lock);
+
+  /* Sync every directory associated with `np`.
+
+     TODO: Rewrite this after having modified ulfs.c and node.c to
+     store the paths and ports to the underlying directories in one
+     place, because now iterating over both lists looks ugly.  */
+  i = 0;
+  node_ulfs_iterate_unlocked (np)
+  {
+    error_t err;
+
+    /* Get the information about the current filesystem.  */
+    err = ulfs_get_num (i, &ulfs);
+    assert (!err);
+
+    /* Since `np` may not necessarily be present in every underlying
+       directory, having a null port is perfectly valid.  */
+    if (node_ulfs->port != MACH_PORT_NULL)
+      {
+	err = file_sync (node_ulfs->port, wait, 0);
+	if (err)
+	  final_err = err;
+      }
+
+    ++i;
+  }
+
+  mutex_unlock (&ulfs_lock);
+  return final_err;
 }
 
 /* This should sync the entire remote filesystem.  If WAIT is set,
@@ -290,7 +329,43 @@ netfs_attempt_sync (struct iouser *cred, struct node *np,
 error_t
 netfs_attempt_syncfs (struct iouser *cred, int wait)
 {
-  return 0;
+  /* The error we are going to report back (last failure wins).  */
+  error_t final_err = 0;
+
+  /* The information about the currently analyzed filesystem.  */
+  ulfs_t * ulfs;
+
+  /* The index of the currently analyzed filesystem.  */
+  int i;
+
+  mutex_lock (&ulfs_lock);
+
+  /* Sync every unioned directory maintained by unionfs.
+
+     TODO: Rewrite this after having modified ulfs.c and node.c to
+     store the paths and ports to the underlying directories in one
+     place, because now iterating over both lists looks ugly.  */
+  i = 0;
+  node_ulfs_iterate_unlocked (netfs_root_node)
+  {
+    error_t err;
+
+    /* Get the information about the current filesystem.  */
+    err = ulfs_get_num (i, &ulfs);
+    assert (!err);
+
+    /* Note that, unlike the situation in netfs_attempt_sync, having a
+       null port on the unionfs root node is abnormal.  */
+    assert (node_ulfs->port != MACH_PORT_NULL);
+    err = file_syncfs (node_ulfs->port, wait, 0);
+    if (err)
+      final_err = err;
+
+    ++i;
+  }
+
+  mutex_unlock (&ulfs_lock);
+  return final_err;
 }
 
 /* lookup */
