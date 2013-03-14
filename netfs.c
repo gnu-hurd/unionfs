@@ -60,7 +60,7 @@ netfs_append_args (char **argz, size_t *argz_len)
 	if (ulfs->priority)
 	  {
 	    char *buf = NULL;
-	    if ((err = asprintf (&buf, "%s=%s", OPT_LONG (OPT_LONG_PRIORITY), 
+	    if ((err = asprintf (&buf, "%s=%d", OPT_LONG (OPT_LONG_PRIORITY), 
 		      ulfs->priority)) != -1)
 	      {
 		err = argz_add (argz, argz_len, buf);
