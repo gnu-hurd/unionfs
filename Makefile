@@ -22,7 +22,7 @@
 CPP = gcc -E -x c
 MIGCOM = mig -cc cat - /dev/null
 
-CFLAGS += -Wall -g -O2 -D_FILE_OFFSET_BITS=64 -std=gnu99 \
+CFLAGS += -Wall -g -O2 -D_FILE_OFFSET_BITS=64 -std=gnu99 -D_GNU_SOURCE \
 	  -DDEBUG
 LDFLAGS += -lnetfs -lfshelp -liohelp -lpthread \
            -lports -lihash -lshouldbeinlibc -lhurdbugaddr

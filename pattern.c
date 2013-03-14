@@ -19,8 +19,6 @@
 
 /* Pattern list management.  */
 
-#define _GNU_SOURCE
-
 #include <hurd/netfs.h>
 #include <stdlib.h>
 #include <fnmatch.h>

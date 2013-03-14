@@ -19,8 +19,6 @@
 
 /* Argument parsing.  */
 
-#define _GNU_SOURCE
-
 #include <argp.h>
 #include <error.h>
 

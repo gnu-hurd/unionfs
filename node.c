@@ -19,8 +19,6 @@
 
 /* node management.  */
 
-#define _GNU_SOURCE
-
 #include <hurd/netfs.h>
 #include <stdlib.h>
 #include <error.h>

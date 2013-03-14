@@ -20,8 +20,6 @@
 /* Update thread: A clean way to solve locking issues of 
    root node update.  */
 
-#define _GNU_SOURCE
-
 #include <errno.h>
 #include <string.h>
 

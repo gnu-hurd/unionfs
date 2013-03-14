@@ -20,8 +20,6 @@
 /* `light node' management.  See unionfs.h for an explanation of light
    nodes.  */
 
-#define _GNU_SOURCE
-
 #include <pthread.h>
 #include <error.h>
 #include <stdlib.h>

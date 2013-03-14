@@ -19,8 +19,6 @@
 
 /* Underlying filesystem management.  */
 
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <error.h>
 #include <string.h>

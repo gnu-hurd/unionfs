@@ -20,8 +20,6 @@
 
 /* Stow mode for unionfs.  */
 
-#define _GNU_SOURCE
-
 #include <argp.h>
 #include <error.h>
 
