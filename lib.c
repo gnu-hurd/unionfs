@@ -19,18 +19,19 @@
 
 #define _GNU_SOURCE
 
-#include <hurd/netfs.h>
+#include <pthread.h>
 #include <error.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/mman.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "lib.h"
 
 /* Lock, which must be held, during printing of debugging
    messages.  */
-struct mutex debug_msg_lock = MUTEX_INITIALIZER;
+pthread_mutex_t debug_msg_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Returns no error if PATH points to a directory.  */
 error_t check_dir (char *path)

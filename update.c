@@ -24,8 +24,6 @@
 
 #include <errno.h>
 #include <string.h>
-#include <cthreads.h>
-#include <rwlock.h>
 
 #include "ncache.h"
 #include "node.h"
@@ -34,21 +32,21 @@
 /* Reader lock is used by threads that are going to
    add/remove an ulfs; writer lock is hold by the 
    update thread.  */
-static struct rwlock update_rwlock;
-static struct condition update_wakeup;
-static struct mutex update_lock;
+static pthread_rwlock_t update_rwlock;
+static pthread_cond_t update_wakeup;
+static pthread_mutex_t update_lock;
 
-static void
-_root_update_thread ()
+static void *
+_root_update_thread (void *arg)
 {
   error_t err;
   
   while (1)
     {
-      if (hurd_condition_wait (&update_wakeup, &update_lock))
-	mutex_unlock (&update_lock);
+      if (pthread_hurd_cond_wait_np (&update_wakeup, &update_lock))
+	pthread_mutex_unlock (&update_lock);
 
-      rwlock_writer_lock (&update_rwlock);
+      pthread_rwlock_wrlock (&update_rwlock);
 
       do 
 	{
@@ -64,34 +62,43 @@ _root_update_thread ()
 
       ncache_reset ();
 
-      rwlock_writer_unlock (&update_rwlock);
+      pthread_rwlock_unlock (&update_rwlock);
     }
+
+  return NULL;
 }
 
 void
 root_update_schedule ()
 {
-  condition_signal (&update_wakeup);
+  pthread_cond_signal (&update_wakeup);
 }
 
 void
 root_update_disable ()
 {
-  rwlock_reader_lock (&update_rwlock);
+  pthread_rwlock_rdlock (&update_rwlock);
 }
 
 void
 root_update_enable ()
 {
-  rwlock_reader_unlock (&update_rwlock);
+  pthread_rwlock_unlock (&update_rwlock);
 }
 
 void
 root_update_init()
 {
-  mutex_init (&update_lock);
-  rwlock_init (&update_rwlock);
-  condition_init (&update_wakeup);
+  pthread_t thread;
+  error_t err;
 
-  cthread_detach (cthread_fork ( (cthread_fn_t)_root_update_thread, 0));
+  pthread_mutex_init (&update_lock, NULL);
+  pthread_rwlock_init (&update_rwlock, NULL);
+  pthread_cond_init (&update_wakeup, NULL);
+
+  err = pthread_create (&thread, NULL, _root_update_thread, NULL);
+  if (!err)
+    pthread_detach (thread);
+  else
+    perror ("root_update_init/pthread_create");
 }

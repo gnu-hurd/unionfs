@@ -22,7 +22,7 @@
 
 #define _GNU_SOURCE
 
-#include <hurd/netfs.h>
+#include <pthread.h>
 #include <error.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,8 +66,8 @@ lnode_create (char *name, lnode_t **node)
 	  node_new->dir = NULL;
 	  node_new->entries = NULL;
 	  node_new->references = 1;
-	  mutex_init (&node_new->lock);
-	  mutex_lock (&node_new->lock);
+	  pthread_mutex_init (&node_new->lock, NULL);
+	  pthread_mutex_lock (&node_new->lock);
 	  *node = node_new;
 	}
     }
@@ -127,7 +127,7 @@ lnode_ref_remove (lnode_t *node)
       lnode_destroy (node);
     }
   else
-    mutex_unlock (&node->lock);
+    pthread_mutex_unlock (&node->lock);
 }
 
 /* Get a light node by it's name.  The looked up node is locked and
@@ -142,7 +142,7 @@ lnode_get (lnode_t *dir, char *name,
   for (n = dir->entries; n && strcmp (n->name, name); n = n->next);
   if (n)
     {
-      mutex_lock (&n->lock);
+      pthread_mutex_lock (&n->lock);
       lnode_ref_add (n);
       *node = n;
     }

@@ -292,7 +292,7 @@ netfs_attempt_sync (struct iouser *cred, struct node *np,
   /* The index of the currently analyzed filesystem.  */
   int i;
 
-  mutex_lock (&ulfs_lock);
+  pthread_mutex_lock (&ulfs_lock);
 
   /* Sync every directory associated with `np`.
 
@@ -320,7 +320,7 @@ netfs_attempt_sync (struct iouser *cred, struct node *np,
     ++i;
   }
 
-  mutex_unlock (&ulfs_lock);
+  pthread_mutex_unlock (&ulfs_lock);
   return final_err;
 }
 
@@ -338,7 +338,7 @@ netfs_attempt_syncfs (struct iouser *cred, int wait)
   /* The index of the currently analyzed filesystem.  */
   int i;
 
-  mutex_lock (&ulfs_lock);
+  pthread_mutex_lock (&ulfs_lock);
 
   /* Sync every unioned directory maintained by unionfs.
 
@@ -364,7 +364,7 @@ netfs_attempt_syncfs (struct iouser *cred, int wait)
     ++i;
   }
 
-  mutex_unlock (&ulfs_lock);
+  pthread_mutex_unlock (&ulfs_lock);
   return final_err;
 }
 
@@ -507,7 +507,7 @@ error_t
 netfs_attempt_mkfile (struct iouser *user, struct node *dir,
 		      mode_t mode, struct node **np)
 {
-  mutex_unlock (&dir->lock);
+  pthread_mutex_unlock (&dir->lock);
   return EOPNOTSUPP;
 }
 
@@ -519,7 +519,7 @@ error_t
 netfs_attempt_create_file (struct iouser *user, struct node *dir,
 			   char *name, mode_t mode, struct node **np)
 {
-  mutex_unlock (&dir->lock);
+  pthread_mutex_unlock (&dir->lock);
   return EOPNOTSUPP;
 }
 
@@ -546,10 +546,10 @@ netfs_attempt_create_file_reduced (struct iouser *user, struct node *dir,
       goto exit;
     }
   
-  mutex_unlock (&dir->lock);
+  pthread_mutex_unlock (&dir->lock);
   err = node_lookup_file (dir, name, flags | O_CREAT, 
 			  &p, &statbuf);
-  mutex_lock (&dir->lock);
+  pthread_mutex_lock (&dir->lock);
 
   if (err)
     goto exit;
@@ -590,7 +590,7 @@ netfs_attempt_create_file_reduced (struct iouser *user, struct node *dir,
   port_dealloc (p);
   
  exit:
-  mutex_unlock (&dir->lock);
+  pthread_mutex_unlock (&dir->lock);
   return err;
 }
 
@@ -682,7 +682,7 @@ netfs_attempt_lookup_improved (struct iouser *user, struct node *dir,
   mach_port_t p;
   error_t err;
 
-  mutex_lock (&dir->nn->lnode->lock);
+  pthread_mutex_lock (&dir->nn->lnode->lock);
 
   err = fshelp_access (&dir->nn_stat, S_IEXEC, user);
   if (err)
@@ -724,14 +724,14 @@ netfs_attempt_lookup_improved (struct iouser *user, struct node *dir,
       err = node_update (dir);
 
       /* We have to unlock this node while doing lookups.  */
-      mutex_unlock (&dir_lnode->lock);
-      mutex_unlock (&dir->lock);
+      pthread_mutex_unlock (&dir_lnode->lock);
+      pthread_mutex_unlock (&dir->lock);
 
       err = node_lookup_file (dir, name, flags & ~(O_NOLINK|O_CREAT),
 			      &p, &statbuf);
 
-      mutex_lock (&dir->lock);
-      mutex_lock (&dir_lnode->lock);
+      pthread_mutex_lock (&dir->lock);
+      pthread_mutex_lock (&dir_lnode->lock);
 
 
       if (err)
@@ -820,12 +820,12 @@ netfs_attempt_lookup_improved (struct iouser *user, struct node *dir,
     *np = NULL;
   else if (*np)
     {
-      mutex_unlock (&(*np)->lock);
+      pthread_mutex_unlock (&(*np)->lock);
       ncache_node_add (*np);
     }
 
-  mutex_unlock (&dir->nn->lnode->lock);
-  mutex_unlock (&dir->lock);
+  pthread_mutex_unlock (&dir->nn->lnode->lock);
+  pthread_mutex_unlock (&dir->lock);
   return err;
 }
 
@@ -880,14 +880,14 @@ netfs_S_dir_lookup (struct protid *diruser,
       /* Set things up in the state expected by the code from gotit: on. */
       dnp = 0;
       np = diruser->po->np;
-      mutex_lock (&np->lock);
+      pthread_mutex_lock (&np->lock);
       netfs_nref (np);
       goto gotit;
     }
 
   dnp = diruser->po->np;
 
-  mutex_lock (&dnp->lock);
+  pthread_mutex_lock (&dnp->lock);
 
   netfs_nref (dnp);		/* acquire a reference for later netfs_nput */
 
@@ -932,7 +932,7 @@ netfs_S_dir_lookup (struct protid *diruser,
 	    if (! lastcomp)
 	      strcpy (retry_name, nextname);
 	    error = 0;
-	    mutex_unlock (&dnp->lock);
+	    pthread_mutex_unlock (&dnp->lock);
 	    goto out;
 	  }
 	else if (diruser->po->root_parent != MACH_PORT_NULL)
@@ -946,7 +946,7 @@ netfs_S_dir_lookup (struct protid *diruser,
 	    if (!lastcomp)
 	      strcpy (retry_name, nextname);
 	    error = 0;
-	    mutex_unlock (&dnp->lock);
+	    pthread_mutex_unlock (&dnp->lock);
 	    goto out;
 	  }
 	else
@@ -974,7 +974,7 @@ netfs_S_dir_lookup (struct protid *diruser,
 	{
 	  mode &= ~(S_IFMT | S_ISPARE | S_ISVTX);
 	  mode |= S_IFREG;
-	  mutex_lock (&dnp->lock);
+	  pthread_mutex_lock (&dnp->lock);
 
 	  error = netfs_attempt_create_file_reduced (diruser->user, dnp,
 						     filename, mode, flags);
@@ -986,7 +986,7 @@ netfs_S_dir_lookup (struct protid *diruser,
 	     that's fine; otherwise, we have to retry the lookup.  */
 	    if ((!error) || (error == EEXIST && !excl))
 	    {
-	      mutex_lock (&dnp->lock);
+	      pthread_mutex_lock (&dnp->lock);
 	      goto retry_lookup;
 	    }
 	  
@@ -999,9 +999,9 @@ netfs_S_dir_lookup (struct protid *diruser,
 
       if (np)
 	{
-	  mutex_lock (&np->lock);
+	  pthread_mutex_lock (&np->lock);
 	  error = netfs_validate_stat (np, diruser->user);
-	  mutex_unlock (&np->lock);
+	  pthread_mutex_unlock (&np->lock);
 	  if (error)
 	    goto out;
 	}
@@ -1059,7 +1059,7 @@ netfs_S_dir_lookup (struct protid *diruser,
 	      create = 0;
 	    }
 	  netfs_nput (np);
-	  mutex_lock (&dnp->lock);
+	  pthread_mutex_lock (&dnp->lock);
 	  np = 0;
 	}
       else

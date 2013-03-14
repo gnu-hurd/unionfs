@@ -35,7 +35,7 @@ struct stow_privdata
   struct patternlist *patternlist;
   int flags;
   int priority;
-  struct mutex lock;
+  pthread_mutex_t lock;
 };
 
 static error_t
@@ -78,7 +78,7 @@ _stow_scanstowentry (char *arg, char *dirpath, void *priv)
       free (tmp);
     }
 
-  mutex_lock (&privdata->lock);
+  pthread_mutex_lock (&privdata->lock);
 
   if (patternlist_isempty (privdata->patternlist))
     {
@@ -86,7 +86,7 @@ _stow_scanstowentry (char *arg, char *dirpath, void *priv)
       err = ulfs_register (filepath, privdata->flags, privdata->priority);
       if (err)
 	{
-	  mutex_unlock (&privdata->lock);
+	  pthread_mutex_unlock (&privdata->lock);
 	  return err;
 	}
 
@@ -96,21 +96,20 @@ _stow_scanstowentry (char *arg, char *dirpath, void *priv)
       err = for_each_subdir_priv (filepath, _stow_registermatchingdirs, priv);
       if (err)
 	{
-	  mutex_unlock (&privdata->lock);
+	  pthread_mutex_unlock (&privdata->lock);
 	  free (filepath);
 	  return err;
 	}
     }
 
   free (filepath);
-  mutex_unlock (&privdata->lock);
+  pthread_mutex_unlock (&privdata->lock);
   return err;
 }
 
 
 /* Implement server for fs_notify.  */
 
-#include <cthreads.h>
 #include <hurd/port.h>
 
 #include "stow-priv.h"
@@ -227,8 +226,8 @@ stow_S_dir_changed (stow_notify_t notify, natural_t tickno,
 }
 
 /* This is the server thread waiting for dir_changed messages.  */
-static void
-_stow_notify_thread()
+static void *
+_stow_notify_thread(void *arg)
 {
   int stow_demuxer (mach_msg_header_t *inp, mach_msg_header_t *outp)
     {
@@ -247,6 +246,8 @@ _stow_notify_thread()
 						 0);
     }
   while (1);
+
+  return NULL;
 }
 
 
@@ -294,7 +295,7 @@ stow_diradd (char *dir, int flags, struct patternlist *patternlist,
   mypriv->patternlist = patternlist;
   mypriv->flags = flags;
   mypriv->priority = priority;
-  mutex_init (&mypriv->lock);
+  pthread_mutex_init (&mypriv->lock, NULL);
   
   err = for_each_subdir_priv (dir, _stow_scanstowentry, (void *)mypriv);
   if (err)
@@ -313,6 +314,7 @@ error_t
 stow_init (void)
 {
   error_t err = 0;
+  pthread_t thread;
 
   stow_port_bucket = ports_create_bucket ();
   if (!stow_port_bucket)
@@ -322,7 +324,11 @@ stow_init (void)
   if (!stow_port_class)
     return errno;
 
-  cthread_detach (cthread_fork ( (cthread_fn_t)_stow_notify_thread, 0));
+  err = pthread_create (&thread, NULL, _stow_notify_thread, NULL);
+  if (err)
+    return err;
+
+  pthread_detach (thread);
 
   return err;
 }

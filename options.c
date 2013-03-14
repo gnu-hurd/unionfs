@@ -79,7 +79,7 @@ argp_parse_common_options (int key, char *arg, struct argp_state *state)
     ulfs_match = 0, ulfs_priority = 0;
   static struct patternlist ulfs_patternlist =
     {    
-      .lock = MUTEX_INITIALIZER,
+      .lock = PTHREAD_MUTEX_INITIALIZER,
       .head = NULL
     };
   error_t err = 0;

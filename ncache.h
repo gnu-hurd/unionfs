@@ -21,7 +21,7 @@
 #define INCLUDED_NCACHE_H
 
 #include <error.h>
-#include <hurd/netfs.h>
+#include <pthread.h>
 
 #include "node.h"
 
@@ -35,7 +35,7 @@ typedef struct ncache
 				   cache.  */
   int size_current;		/* Current number of nodes in the
 				   cache.  */
-  struct mutex lock;		/* A lock.  */
+  pthread_mutex_t lock;		/* A lock.  */
 } ncache_t;
 
 /* Cache size, may be overwritten by the user.  */

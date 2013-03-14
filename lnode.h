@@ -22,7 +22,7 @@
 #ifndef INCLUDED_LNODE_H
 #define INCLUDED_LNODE_H
 
-#include <hurd/netfs.h>
+#include <pthread.h>
 #include <error.h>
 
 struct lnode
@@ -40,7 +40,7 @@ struct lnode
 				   contained int.  */
   struct lnode *entries;	/* A reference to the list containing
 				   the entries of this light node.  */
-  struct mutex lock;		/* A lock.  */
+  pthread_mutex_t lock;		/* A lock.  */
 };
 typedef struct lnode lnode_t;
 

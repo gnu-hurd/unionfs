@@ -43,7 +43,7 @@ ncache_init (int size_max)
   ncache.lru = NULL;
   ncache.size_max = size_max;
   ncache.size_current = 0;
-  mutex_init (&ncache.lock);
+  pthread_mutex_init (&ncache.lock, NULL);
 }
 
 /* Remove the given node NODE from the cache.  */
@@ -70,10 +70,10 @@ ncache_reset (void)
 {
   node_t *node;
 
-  mutex_lock (&ncache.lock);
+  pthread_mutex_lock (&ncache.lock);
   while ((node = ncache.mru))
     ncache_node_remove (node);
-  mutex_unlock (&ncache.lock);
+  pthread_mutex_unlock (&ncache.lock);
 }
 
 /* Lookup the node for the light node LNODE.  If it does not exist
@@ -101,7 +101,7 @@ ncache_node_lookup (lnode_t *lnode, node_t **node)
 
   if (! err)
     {
-      mutex_lock (&n->lock);
+      pthread_mutex_lock (&n->lock);
       *node = n;
     }
   return err;
@@ -112,7 +112,7 @@ ncache_node_lookup (lnode_t *lnode, node_t **node)
 void
 ncache_node_add (node_t *node)
 {
-  mutex_lock (&ncache.lock);
+  pthread_mutex_lock (&ncache.lock);
 
   debug_msg ("adding node to cache: %s", node->nn->lnode->name);
 
@@ -147,5 +147,5 @@ ncache_node_add (node_t *node)
       netfs_nrele (lru);
     }
 
-  mutex_unlock (&ncache.lock);
+  pthread_mutex_unlock (&ncache.lock);
 }

@@ -22,7 +22,7 @@
 #ifndef _PATTERN_H
 #define _PATTERN_H
 
-#include <hurd/netfs.h> /* For mutex stuff.  */
+#include <pthread.h>
 
 struct pattern
 {
@@ -33,7 +33,7 @@ struct pattern
 
 struct patternlist
 {
-  struct mutex lock;
+  pthread_mutex_t lock;
   struct pattern *head;
 };
 

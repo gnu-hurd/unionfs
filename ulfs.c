@@ -21,7 +21,6 @@
 
 #define _GNU_SOURCE
 
-#include <hurd/netfs.h>
 #include <stdlib.h>
 #include <error.h>
 #include <string.h>
@@ -43,7 +42,7 @@ ulfs_t *ulfs_chain_end;
 unsigned int ulfs_num;
 
 /* The lock protecting the ulfs data structures.  */
-struct mutex ulfs_lock = MUTEX_INITIALIZER;
+pthread_mutex_t ulfs_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* Create a new ulfs element.  */
 static error_t
@@ -226,7 +225,7 @@ ulfs_register (char *path, int flags, int priority)
 	  return err;
     }
 
-  mutex_lock (&ulfs_lock);
+  pthread_mutex_lock (&ulfs_lock);
   err = ulfs_create (path, &ulfs);
   if (! err)
     {
@@ -235,7 +234,7 @@ ulfs_register (char *path, int flags, int priority)
       ulfs_install (ulfs);
       ulfs_num++;
     }
-  mutex_unlock (&ulfs_lock);
+  pthread_mutex_unlock (&ulfs_lock);
   return err;
 }
 
@@ -254,7 +253,7 @@ ulfs_check ()
     struct ulfs_destroy *next;
   } *ulfs_destroy_q = NULL;
 
-  mutex_lock (&ulfs_lock);
+  pthread_mutex_lock (&ulfs_lock);
 
   u = ulfs_chain_start;
   while (u)
@@ -296,7 +295,7 @@ ulfs_check ()
       free (ptr);
     }
 
-  mutex_unlock (&ulfs_lock);
+  pthread_mutex_unlock (&ulfs_lock);
 
 }
 
@@ -307,7 +306,7 @@ ulfs_unregister (char *path)
   ulfs_t *ulfs;
   error_t err;
 
-  mutex_lock (&ulfs_lock);
+  pthread_mutex_lock (&ulfs_lock);
   err = ulfs_get_path (path, &ulfs);
   if (! err)
     {
@@ -315,7 +314,7 @@ ulfs_unregister (char *path)
       ulfs_destroy (ulfs);
       ulfs_num--;
     }
-  mutex_unlock (&ulfs_lock);
+  pthread_mutex_unlock (&ulfs_lock);
 
   return err;
 }

@@ -58,7 +58,7 @@ patternlist_add (struct patternlist *list, char *pattern)
 
   listentry->pattern = dup;
 
-  mutex_lock (& (list->lock));
+  pthread_mutex_lock (& (list->lock));
   if (list->head == NULL) /* List is empty.  */
     {
       list->head = listentry;
@@ -69,7 +69,7 @@ patternlist_add (struct patternlist *list, char *pattern)
       listentry->next = list->head;
       list->head = listentry;
     }
-  mutex_unlock (& (list->lock));
+  pthread_mutex_unlock (& (list->lock));
 
   return err;
 }
@@ -84,7 +84,7 @@ patternlist_match (struct patternlist *list, char *string)
 
   ptr = list->head;
 
-  mutex_lock (&list->lock);
+  pthread_mutex_lock (&list->lock);
   while (ptr != NULL)
     {
       err = fnmatch (ptr->pattern, string, FNM_FILE_NAME);
@@ -94,7 +94,7 @@ patternlist_match (struct patternlist *list, char *string)
 
       ptr = ptr->next;
     }
-  mutex_unlock (&list->lock);
+  pthread_mutex_unlock (&list->lock);
 
   return err;
 }
@@ -105,7 +105,7 @@ patternlist_destroy (struct patternlist *list)
 {
   struct pattern *next, *ptr = list->head;
 
-  mutex_lock (& (list->lock));
+  pthread_mutex_lock (& (list->lock));
   while (ptr != NULL)
     {
       next = ptr->next;
@@ -114,7 +114,7 @@ patternlist_destroy (struct patternlist *list)
 
       ptr = next;
     }
-  mutex_unlock (& (list->lock));
+  pthread_mutex_unlock (& (list->lock));
 }
 
 /* Return nonzero if *PATTERNLIST is empty.  */
@@ -123,9 +123,9 @@ patternlist_isempty (struct patternlist *list)
 {
   int ret;
 
-  mutex_lock (& (list->lock));
+  pthread_mutex_lock (& (list->lock));
   ret = (list->head == NULL);
-  mutex_unlock (& (list->lock));
+  pthread_mutex_unlock (& (list->lock));
 
   return ret;
 }

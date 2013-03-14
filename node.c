@@ -93,7 +93,7 @@ node_destroy (node_t *node)
   debug_msg ("node destroy: %s", node->nn->lnode->name);
   assert (! (node->nn->ncache_next || node->nn->ncache_prev));
   node_ulfs_free (node);
-  mutex_lock (&node->nn->lnode->lock);
+  pthread_mutex_lock (&node->nn->lnode->lock);
   node->nn->lnode->node = NULL;
   lnode_ref_remove (node->nn->lnode);
   free (node->nn);
@@ -118,12 +118,12 @@ node_update (node_t *node)
   if (node_is_root (node))
     return err;
 
-  mutex_lock (&netfs_root_node->lock);
+  pthread_mutex_lock (&netfs_root_node->lock);
 
   err = lnode_path_construct (node->nn->lnode, &path);
   if (err)
     {
-      mutex_unlock (&netfs_root_node->lock);
+      pthread_mutex_unlock (&netfs_root_node->lock);
       return err;
     }
 
@@ -178,7 +178,7 @@ node_update (node_t *node)
   free (path);
   node->nn->flags |= FLAG_NODE_ULFS_UPTODATE;
 
-  mutex_unlock (&netfs_root_node->lock);
+  pthread_mutex_unlock (&netfs_root_node->lock);
   
   return err;
 }
@@ -500,7 +500,7 @@ node_create_root (node_t **root_node)
       return err;
     }
 
-  mutex_unlock (&lnode->lock);
+  pthread_mutex_unlock (&lnode->lock);
   *root_node = node;
   return err;
 }
@@ -515,12 +515,12 @@ node_init_root (node_t *node)
   ulfs_t *ulfs;
   int i = 0;
 
-  mutex_lock (&ulfs_lock);
+  pthread_mutex_lock (&ulfs_lock);
 
   err = node_ulfs_init (node);
   if (err)
     {
-      mutex_unlock (&ulfs_lock);
+      pthread_mutex_unlock (&ulfs_lock);
       return err;
     }
 
@@ -550,6 +550,6 @@ node_init_root (node_t *node)
       i++;
     }
 
-  mutex_unlock (&ulfs_lock);
+  pthread_mutex_unlock (&ulfs_lock);
   return err;
 }

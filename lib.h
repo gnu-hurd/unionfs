@@ -65,17 +65,17 @@ error_t file_lookup (file_t dir, char *name, int flags0, int flags1, int mode,
 /* Returns no error if directory.  */
 error_t check_dir (char *path);
 
-extern struct mutex debug_msg_lock;
+extern pthread_mutex_t debug_msg_lock;
 
 /* Support for debugging messages.  */
 #define debug_msg_send(fmt, args...)                         \
         do                                                   \
           {                                                  \
-            mutex_lock (&debug_msg_lock);                    \
+            pthread_mutex_lock (&debug_msg_lock);                    \
             fprintf (stderr, "%s:%i: ", __FILE__, __LINE__); \
             fprintf (stderr, fmt , ## args);                 \
             putc ('\n', stderr);                             \
-            mutex_unlock (&debug_msg_lock);                  \
+            pthread_mutex_unlock (&debug_msg_lock);                  \
           }                                                  \
         while (0)
 

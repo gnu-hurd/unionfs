@@ -22,6 +22,8 @@
 #ifndef INCLUDED_ULFS_H
 #define INCLUDED_ULFS_H
 
+#include <pthread.h>
+
 /* The structure for each registered underlying filesystem.  */
 typedef struct ulfs
 {
@@ -47,7 +49,7 @@ extern ulfs_t *ulfs_chain_end;
 extern unsigned int ulfs_num;
 
 /* The lock protecting the ulfs data structures.  */
-extern struct mutex ulfs_lock;
+extern pthread_mutex_t ulfs_lock;
 
 /* Register a new underlying filesystem.  */
 error_t ulfs_register (char *path, int flags, int priority);
@@ -62,9 +64,9 @@ error_t ulfs_get_num (int num, ulfs_t **ulfs);
 void ulfs_check (void);
 
 #define ulfs_iterate                             \
-  for (ulfs_t *ulfs = (mutex_lock (&ulfs_lock),  \
+  for (ulfs_t *ulfs = (pthread_mutex_lock (&ulfs_lock),  \
 		       ulfs_chain_start);          \
-       ulfs || (mutex_unlock (&ulfs_lock), 0);   \
+       ulfs || (pthread_mutex_unlock (&ulfs_lock), 0);   \
        ulfs = ulfs->next) 
 
 #define ulfs_iterate_unlocked                    \
