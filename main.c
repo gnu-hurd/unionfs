@@ -53,7 +53,7 @@ pid_t fsid;
 mach_port_t underlying_node;
 
 /* stat information for the underlying node.  */
-struct stat underlying_node_stat;
+io_statbuf_t underlying_node_stat;
 
 /* Mapped time, used for updating node information.  */
 volatile struct mapped_time_value *maptime;

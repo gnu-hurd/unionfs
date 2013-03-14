@@ -76,7 +76,7 @@ extern volatile struct mapped_time_value *maptime;
 extern mach_port_t underlying_node;
 
 /* stat information for the underlying node.  */
-extern struct stat underlying_node_stat;
+extern io_statbuf_t underlying_node_stat;
 
 /* Send a debugging message, if unionfs is in debugging mode.  */
 #define debug_msg(fmt, args...)                          \
