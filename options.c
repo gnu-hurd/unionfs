@@ -116,7 +116,7 @@ argp_parse_common_options (int key, char *arg, struct argp_state *state)
     case OPT_STOW:		/* --stow */
       err = stow_diradd (arg, ulfs_flags, &ulfs_patternlist, ulfs_priority);
       if (err)
-	error (EXIT_FAILURE, err, "stow_diradd");
+	argp_error (state, "stow_diradd");
       ulfs_modified = 1;
       ulfs_flags = ulfs_mode = ulfs_priority = 0;
       ulfs_match = 0;
@@ -136,7 +136,7 @@ argp_parse_common_options (int key, char *arg, struct argp_state *state)
       else
 	err = ulfs_register (arg, ulfs_flags, ulfs_priority);
       if (err)
-	error (EXIT_FAILURE, err, "ulfs_register");
+	argp_error (state, "ulfs_register");
       ulfs_modified = 1;
       ulfs_flags = ulfs_mode = ulfs_priority = 0;
       ulfs_match = 0;
