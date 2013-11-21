@@ -52,7 +52,10 @@ patternlist_add (struct patternlist *list, char *pattern)
     err = ENOMEM;
 
   if (err)
+    {
+      free (dup);
       return err;
+    }
 
   listentry->pattern = dup;
 
