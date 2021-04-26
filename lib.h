@@ -23,6 +23,7 @@
 #include <hurd.h>
 #include <dirent.h>
 #include <stddef.h>
+#include <stdio.h>
 
 /* Returned directory entries are aligned to blocks this many bytes
    long.  Must be a power of two.  */

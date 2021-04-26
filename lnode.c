@@ -21,6 +21,7 @@
    nodes.  */
 
 #include <pthread.h>
+#include <assert.h>
 #include <error.h>
 #include <stdlib.h>
 #include <string.h>

@@ -21,7 +21,9 @@
 /* Stow mode for unionfs.  */
 
 #include <argp.h>
+#include <assert.h>
 #include <error.h>
+#include <stdlib.h>
 
 #include "ulfs.h"
 #include "lib.h"

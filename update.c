@@ -21,6 +21,7 @@
    root node update.  */
 
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "ncache.h"

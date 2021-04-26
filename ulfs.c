@@ -19,6 +19,7 @@
 
 /* Underlying filesystem management.  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <error.h>
 #include <string.h>

@@ -19,6 +19,7 @@
 
 /* node management.  */
 
+#include <assert.h>
 #include <hurd/netfs.h>
 #include <stdlib.h>
 #include <error.h>

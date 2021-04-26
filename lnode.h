@@ -24,6 +24,7 @@
 
 #include <pthread.h>
 #include <error.h>
+#include <hurd.h>
 
 struct lnode
 {

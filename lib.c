@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/mman.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "lib.h"
