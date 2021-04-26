@@ -282,7 +282,7 @@ stow_diradd (char *dir, int flags, struct patternlist *patternlist,
     {
       char *tmp;
 
-      tmp = (char *) malloc (dir_len + 1);
+      tmp = (char *) malloc (dir_len + 2);
 
       if (tmp == NULL)
 	return ENOMEM;
@@ -290,6 +290,7 @@ stow_diradd (char *dir, int flags, struct patternlist *patternlist,
       strncpy (tmp, dir, dir_len);
 
       tmp[dir_len] = '/';
+      tmp[dir_len + 1] = 0;
 
       dir = tmp;
     }
