@@ -169,6 +169,15 @@ begin_using_notify_port (fs_notify_t port)
   return ports_lookup_port (stow_port_bucket, port, stow_port_class);
 }
 
+/* Called by MiG to translate ports into stow_notify_t when using the
+   protected payload feature.  mutations.h arranges for this to happen
+   for the fs_notify interfaces. */
+stow_notify_t
+begin_using_notify_port_payload (unsigned long payload)
+{
+  return ports_lookup_payload (stow_port_bucket, payload, stow_port_class);
+}
+
 /* Called by MiG after server routines have been run; this balances
    begin_using_notify_port, and is arranged for the fs_notify
    interfaces by mutations.h. */
