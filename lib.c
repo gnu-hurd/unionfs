@@ -151,8 +151,8 @@ make_filepath (char *path, char *filename)
   if (filepath == NULL) 
     return NULL;
   
-  strncpy (filepath, path, length);
-  strncat (filepath, filename, strlen (filename));
+  strcpy (filepath, path);
+  strcat (filepath, filename);
 
   return filepath;
 }

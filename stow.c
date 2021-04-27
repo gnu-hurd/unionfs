@@ -287,7 +287,7 @@ stow_diradd (char *dir, int flags, struct patternlist *patternlist,
       if (tmp == NULL)
 	return ENOMEM;
 
-      strncpy (tmp, dir, dir_len);
+      strcpy (tmp, dir);
 
       tmp[dir_len] = '/';
       tmp[dir_len + 1] = 0;
